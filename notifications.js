@@ -4,40 +4,77 @@ class NotificationManager {
     this.requestButton = document.getElementById('request-permission');
     this.simulateButton = document.getElementById('simulate-text');
     this.phone = document.getElementById('phone');
+    this.swRegistration = null;
     
     this.init();
   }
 
-  init() {
+  async init() {
     this.updatePermissionStatus();
     
     this.requestButton.addEventListener('click', () => this.requestPermission());
     this.simulateButton.addEventListener('click', () => this.simulateText());
     
-    // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(registration => {
-          console.log('ServiceWorker registration successful');
-        })
-        .catch(err => {
-          console.log('ServiceWorker registration failed: ', err);
-        });
+    // Check if service workers and notifications are supported
+    if (!('serviceWorker' in navigator)) {
+      console.error('Service Workers are not supported');
+      this.updateStatus('Service Workers not supported');
+      return;
+    }
+
+    if (!('Notification' in window)) {
+      console.error('Notifications are not supported');
+      this.updateStatus('Notifications not supported');
+      return;
+    }
+
+    try {
+      this.swRegistration = await navigator.serviceWorker.register('service-worker.js');
+      console.log('ServiceWorker registration successful');
+      
+      // Ensure the service worker is active
+      if (this.swRegistration.active) {
+        this.updateStatus('Service Worker active');
+      } else {
+        await navigator.serviceWorker.ready;
+        this.updateStatus('Service Worker ready');
+      }
+    } catch (err) {
+      console.error('ServiceWorker registration failed: ', err);
+      this.updateStatus('Service Worker registration failed');
     }
   }
 
+  updateStatus(message) {
+    this.permissionStatus.textContent = `${message} (Notification permission: ${Notification.permission})`;
+  }
+
   updatePermissionStatus() {
-    this.permissionStatus.textContent = Notification.permission;
+    this.updateStatus(Notification.permission);
     this.requestButton.style.display = 
       Notification.permission === 'granted' ? 'none' : 'inline-block';
   }
 
   async requestPermission() {
+    if (!('Notification' in window)) {
+      alert('This browser does not support notifications');
+      return;
+    }
+
     try {
       const permission = await Notification.requestPermission();
+      console.log('Permission request result:', permission);
       this.updatePermissionStatus();
+      
+      if (permission === 'granted') {
+        // Try to show a test notification
+        await this.showNotification('Test Notification', 'Notifications are now working!');
+      } else {
+        alert('We need notification permission to show notifications');
+      }
     } catch (error) {
       console.error('Error requesting notification permission:', error);
+      alert('There was an error requesting notification permission');
     }
   }
 
@@ -47,7 +84,7 @@ class NotificationManager {
       "Want to grab lunch?",
       "Don't forget about tomorrow's meeting!",
       "Check out this cool website I found!",
-      "Missing you! ❤️"
+      "Missing you! "
     ];
     
     const senders = [
@@ -64,7 +101,7 @@ class NotificationManager {
     this.showNotification(randomSender, randomMessage);
   }
 
-  showNotification(title, message) {
+  async showNotification(title, message) {
     // Show in-page notification
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -86,13 +123,21 @@ class NotificationManager {
 
     // Show system notification if permitted
     if (Notification.permission === 'granted') {
-      const options = {
-        body: message,
-        icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="11" fill="%23007AFF"/><text x="12" y="16" text-anchor="middle" fill="white" font-family="system-ui" font-size="14">📱</text></svg>',
-        badge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="11" fill="%23007AFF"/></svg>'
-      };
-      
-      new Notification(title, options);
+      try {
+        const options = {
+          body: message,
+          icon: '/notification-icon.svg',
+          badge: '/notification-badge.svg'
+        };
+        
+        if (this.swRegistration) {
+          await this.swRegistration.showNotification(title, options);
+        } else {
+          new Notification(title, options);
+        }
+      } catch (error) {
+        console.error('Error showing notification:', error);
+      }
     }
   }
 }
