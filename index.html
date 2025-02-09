@@ -1,0 +1,81 @@
+<html>
+<head>
+  <title>Web Notifications Demo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .phone {
+      width: 300px;
+      height: 600px; 
+      border: 16px solid #333;
+      border-radius: 36px;
+      margin: 20px auto;
+      padding: 20px;
+      position: relative;
+      background: #fff;
+    }
+
+    .notification {
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin: 10px;
+      text-align: left;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    button {
+      background: #007AFF;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .status {
+      color: #666;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Web Notifications Demo</h1>
+  
+  <div class="status">
+    Notification Permission: <span id="permission-status">checking...</span>
+  </div>
+
+  <button id="request-permission">Request Notification Permission</button>
+  <button id="simulate-text">Simulate Incoming Text</button>
+
+  <div class="phone" id="phone">
+    <!-- Notifications will appear here -->
+  </div>
+
+  <p>Note: This demonstrates web notifications. Due to security restrictions, actual SMS notifications require system-level integration or specific mobile APIs that aren't available to websites.</p>
+
+  <script src="notifications.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
